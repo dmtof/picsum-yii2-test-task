@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  app:
+    build: ./_docker/app
+    volumes:
+      - ./src:/var/www/html
+    networks:
+      - network
+    container_name: app
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./_docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - network
+    container_name: postgres
+
+  nginx:
+    image: nginx:1.27
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www/html
+      - ./_docker/nginx/conf.d:/etc/nginx/conf.d
+    networks:
+      - network
+    container_name: nginx
+
+volumes:
+  postgres_data:
+
+networks:
+  network:
+    driver: bridge
